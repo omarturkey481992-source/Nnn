@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  zap:
+    image: owasp/zap2docker-stable
+    command: zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=true
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./zap-data:/zap/wrk
+
+  backend:
+    build: ./backend
+    depends_on:
+      - zap
+    environment:
+      - ZAP_HOST=zap
+      - ZAP_PORT=8090
+    ports:
+      - "8000:8000"
+    network_mode: bridge
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - ./backend/app:/app/app
